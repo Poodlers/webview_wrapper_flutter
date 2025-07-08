@@ -18,7 +18,6 @@ void main() async {
   FirebaseAnalytics analytics = FirebaseAnalytics.instance;
   FirebaseMessaging messaging = FirebaseMessaging.instance;
   final firebaseToken = await messaging.getToken();
-  print('Token : $firebaseToken' );
 
   NotificationSettings settings = await messaging.requestPermission(
     alert: true,
@@ -35,15 +34,10 @@ void main() async {
   runApp(WebViewPage());
 }
 
-
-
-
 class WebViewPage extends StatefulWidget {
   const WebViewPage({super.key});
-
   @override
   State<WebViewPage> createState() => _WebViewPageState();
-
 }
 
 class _WebViewPageState extends State<WebViewPage>{
