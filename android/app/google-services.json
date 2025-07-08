@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "170881013699",
+    "project_id": "fir-push-notifs-b3b8e",
+    "storage_bucket": "fir-push-notifs-b3b8e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:170881013699:android:65245198c825143e1fcf76",
+        "android_client_info": {
+          "package_name": "com.castroeletronica.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBjOt7r2ABAS6D--m6pgB6ZjnTWe04JDcY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
