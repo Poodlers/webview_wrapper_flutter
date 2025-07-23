@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:webview_flutter/webview_flutter.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -41,48 +42,98 @@ class WebViewPage extends StatefulWidget {
 }
 
 class _WebViewPageState extends State<WebViewPage>{
- WebViewController? webViewController;
- final websiteURL = "https://www.castroelectronica.pt";
- @override
- void initState(){
-   super.initState();
-   webViewController = WebViewController()
-   ..setJavaScriptMode(JavaScriptMode.unrestricted)
-   ..setNavigationDelegate(NavigationDelegate(
-     onProgress: (int progress) {
-       // Update loading bar.
-     },
-     onPageStarted: (String url) {},
-     onPageFinished: (String url) {
-       //remove o splash screen
-       FlutterNativeSplash.remove();
-     },
-     onHttpError: (HttpResponseError error) {},
-     onWebResourceError: (WebResourceError error) {},
-     onNavigationRequest: (NavigationRequest request) {
-       return NavigationDecision.navigate;
-     },
-   ))
-   ..loadRequest(Uri.parse(websiteURL));
-   //remove splash screen when theres no internet
-   Future.delayed(Duration(seconds: 30), () {
-     FlutterNativeSplash.remove();
-   });
+  var mainThemeColor = 0xff26A2FC;
+  InAppWebViewController? webViewController;
+  PullToRefreshController? refreshController;
+  late var url;
+  double progress = 0;
+  var urlController = TextEditingController();
+  var initialURL = 'https://www.castroelectronica.pt/';
+  var isLoading = true;
+  @override
+  void initState() {
 
- }
+    super.initState();
+    refreshController = PullToRefreshController(
+      onRefresh: () => webViewController!.reload(),
+      settings: PullToRefreshSettings(
+        color: Colors.white,
+        backgroundColor: Color(mainThemeColor),
+
+      )
+    );
+
+  }
+
+  Future<bool> _goBack(BuildContext context) async {
+    if(await webViewController!.canGoBack()){
+      webViewController!.goBack();
+      return Future.value(false);
+    }else{
+      SystemNavigator.pop();
+      return Future.value(true);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Castro Eletrónica',
       debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        body: SafeArea(
-          child: WebViewWidget(
-            controller: webViewController!,
-          ),
-        ),
-      ),
+      home: SafeArea(
+          child: Scaffold(
+          body: WillPopScope(
+            onWillPop: () => _goBack(context),
+            child:  Column(
+            children: [
+              Expanded(
+                child: Stack(
+                  alignment: Alignment.center,
+            children: [
+            InAppWebView(
+                onLoadStart: (controller, uri) => {
+
+                  setState(() {
+                    isLoading = true;
+                  })
+
+                },
+              onProgressChanged: (controller, progress)  {
+                  if (progress == 100){
+                    refreshController!.endRefreshing();
+                  }
+                  setState(() {
+                     this.progress = progress / 100;
+                  });
+              } ,
+                pullToRefreshController: refreshController,
+                onLoadStop: (controller, uri) => {
+                  setState(() {
+                    isLoading = false;
+                  }),
+                  refreshController!.endRefreshing(),
+                  FlutterNativeSplash.remove()
+                } ,
+                initialUrlRequest: URLRequest(url: WebUri(initialURL)),
+                onWebViewCreated: (controller) => webViewController = controller,
+              ),
+              Visibility(
+                  visible: isLoading,
+                  child:
+              CircularProgressIndicator(
+                value: progress,
+                valueColor:  AlwaysStoppedAnimation(Color(mainThemeColor)),
+              )
+              )
+
+          ]
+            ),
+        )
+        ],
+      )
+          )
+      )
+    )
     );
   }
 
